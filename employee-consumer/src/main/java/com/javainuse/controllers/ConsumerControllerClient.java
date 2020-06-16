@@ -1,26 +1,19 @@
 package com.javainuse.controllers;
 
-import java.io.IOException;
-import java.util.List;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-@Controller
-public class ConsumerControllerClient {
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
+
+@RestController
+public class ConsumerControllerClient {
+	@Autowired
+	LoadBalancerClient loadBalancer;
+@GetMapping
 	public void getEmployee() throws RestClientException, InterruptedException {
 		PoolingHttpClientConnectionManager cm =
 				new PoolingHttpClientConnectionManager();
@@ -29,12 +22,12 @@ public class ConsumerControllerClient {
 //		CloseableHttpClient httpClient = HttpClients.custom()
 //				.setConnectionManager(cm)
 //				.build();
-		Thread[] threads = new Thread[10];
-		for(int i=0;i<10;i++){
-			threads[i] = new Thread(new Threadsss());
+		Thread[] threads = new Thread[1000];
+		for(int i=0;i<1000;i++){
+			threads[i] = new Thread(new Threadsss(loadBalancer));
 			threads[i].start();
 		}
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 1000; i++) {
 			threads[i].join();
 		}
 	}

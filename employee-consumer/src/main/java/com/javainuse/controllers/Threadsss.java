@@ -1,6 +1,5 @@
 package com.javainuse.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.*;
@@ -14,17 +13,21 @@ import java.io.IOException;
  */
 public class Threadsss implements Runnable {
 
-    @Autowired
     private LoadBalancerClient loadBalancer;
+    public Threadsss(LoadBalancerClient loadBalancer){
+        this.loadBalancer =loadBalancer;
+    }
 
     @Override
     public void run() {
+
 
         ServiceInstance serviceInstance = loadBalancer.choose("employee-producer");
 
         System.out.println(serviceInstance.getUri());
 
         String baseUrl = serviceInstance.getUri().toString();
+//        String baseUrl ="http://host.docker.internal:8081/";
 
         baseUrl = baseUrl + "/employee";
 
@@ -44,4 +47,5 @@ public class Threadsss implements Runnable {
         headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
         return new HttpEntity<>(headers);
     }
+
 }
