@@ -1,38 +1,49 @@
 package com.javainuse.controllers;
 
 
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
-@RequestMapping("/milion")
+@RequestMapping
 public class ConsumerControllerClient {
-	@Autowired
-	LoadBalancerClient loadBalancer;
-@GetMapping
-	public void getEmployee() throws RestClientException, InterruptedException {
-		PoolingHttpClientConnectionManager cm =
-				new PoolingHttpClientConnectionManager();
-		cm.setMaxTotal(200); // increase max total connection to 200
-		cm.setDefaultMaxPerRoute(20); // increase max connection per route to 20
-//		CloseableHttpClient httpClient = HttpClients.custom()
-//				.setConnectionManager(cm)
-//				.build();
-		Thread[] threads = new Thread[1000];
-		for(int i=0;i<1000;i++){
-			threads[i] = new Thread(new Threadsss(loadBalancer));
-			threads[i].start();
-		}
-		for (int i = 0; i < 1000; i++) {
-			threads[i].join();
-		}
-	}
+    private final LoadBalancerClient loadBalancer;
 
+    public ConsumerControllerClient(LoadBalancerClient loadBalancer) {
+        this.loadBalancer = loadBalancer;
+    }
+
+    private static HttpEntity<?> getHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
+        return new HttpEntity<>(headers);
+    }
+
+    @GetMapping
+    public void getEmployee() throws RestClientException {
+        //get instance by load balancer
+        ServiceInstance serviceInstance = loadBalancer.choose("EMPLOYEE-PRODUCER");
+
+        String baseUrl = serviceInstance.getUri().toString();
+
+        baseUrl = baseUrl + "/employee";
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(baseUrl,
+                    HttpMethod.GET, getHeaders(), String.class);
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+        assert response != null;
+        System.out.println(response.getBody());
+    }
 
 }
